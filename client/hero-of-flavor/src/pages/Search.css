@@ -32,6 +32,17 @@
     border-radius: 5px;
   }
   
+  /* New styles for search bar */
+  .searchBar {
+    padding: 10px;
+    font-size: 16px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
   .selectedIngredients {
     margin: 20px 0;
     padding: 10px;

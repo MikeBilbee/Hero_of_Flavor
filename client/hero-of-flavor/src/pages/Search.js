@@ -6,6 +6,7 @@ const Search = () => {
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(''); // Add state for search term
   const itemsPerPage = 32; // Number of items per page
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -32,6 +33,16 @@ const Search = () => {
     });
   };
 
+  // Handle search input change
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  // Filter ingredients based on the search term
+  const filteredIngredients = ingredients.filter(ingredient =>
+    ingredient.Name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Handle finding recipes
   const findRecipes = async () => {
     try {
@@ -47,9 +58,9 @@ const Search = () => {
   // Handle page navigation
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = ingredients.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredIngredients.slice(indexOfFirstItem, indexOfLastItem);
 
-  const totalPages = Math.ceil(ingredients.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredIngredients.length / itemsPerPage);
 
   const goToNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   const goToPreviousPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -66,7 +77,14 @@ const Search = () => {
         <button className="optionButton">Sort Alphabetically</button>
       </div>
 
-      <h2>How to Use</h2>
+      {/* Search bar */}
+      <input
+        type="text"
+        placeholder="Search ingredients..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        className="searchBar"
+      />
 
       <div className="selectedIngredients">
         <h3>Selected Ingredients:</h3>
@@ -107,7 +125,7 @@ const Search = () => {
           <div className="recipesGrid">
             {recipes.map((recipe) => (
               <div key={recipe._id} className="recipeItem">
-                <img src={`/images/recipes/${recipes.imagePath}`} alt={recipe.Name} className="recipeImage" />
+                <img src={`/images/recipes/${recipe.imagePath}`} alt={recipe.Name} className="recipeImage" />
                 <p>{recipe.Name}</p>
               </div>
             ))}
