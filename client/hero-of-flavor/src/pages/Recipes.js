@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Import Axios for API calls
 import './Recipes.css';
 
 const Recipes = () => {
   const [recipes, setRecipes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const recipesPerPage = 20;
-  
+
   useEffect(() => {
     const fetchRecipes = async () => {
-      const fetchedRecipes= Array.from({ length: 215 }).map((_, idx) => ({
-        id: idx,
-        name: `Ingredient ${idx + 1}`
-      }));
-      setRecipes(fetchedRecipes);
+      try {
+        const response = await axios.get('http://localhost:5000/api/recipes');
+        setRecipes(response.data); // Assume response.data is an array of recipes
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+      }
     };
 
-  fetchRecipes();
-  }, [])
-  
+    fetchRecipes();
+  }, []);
 
   const indexOfLastRecipe = currentPage * recipesPerPage;
   const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
@@ -39,8 +40,8 @@ const Recipes = () => {
       
       <div className="recipes-grid">
         {currentRecipes.map((recipe) => (
-          <div key={recipe.id} className="recipe-card">
-            <div className="recipe-icon">{recipe.icon}</div>
+          <div key={recipe._id} className="recipe-item">
+            <img src={`/images/recipes/${recipe.imagePath}`} alt={recipe.name} className="recipe-image" />
             <p>{recipe.name}</p>
           </div>
         ))}
