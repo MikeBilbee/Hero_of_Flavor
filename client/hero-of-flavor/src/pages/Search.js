@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Import Axios for API calls
-import './Search.css'; // Import the CSS file
+import axios from 'axios';
+import './Search.css';
 
 const Search = () => {
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [recipes, setRecipes] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(''); // Add state for search term
-  const itemsPerPage = 32; // Number of items per page
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const [sortByType, setSortByType] = useState(false);
+  const itemsPerPage = 32;
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchIngredients = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/ingredients');
-        setIngredients(response.data); // Store the fetched ingredients in state
+        setIngredients(response.data);
       } catch (error) {
         console.error('Error fetching ingredients:', error);
       }
@@ -23,13 +25,16 @@ const Search = () => {
     fetchIngredients();
   }, []);
 
-  // Handle ingredient click
+  // Handle ingredient click: toggle selection
   const handleIngredientClick = (ingredient) => {
     setSelectedIngredients((prev) => {
-      if (!prev.includes(ingredient)) {
+      if (prev.includes(ingredient)) {
+        // If ingredient is already selected, remove it
+        return prev.filter(item => item !== ingredient);
+      } else {
+        // Otherwise, add it to the selection
         return [...prev, ingredient];
       }
-      return prev;
     });
   };
 
@@ -38,10 +43,33 @@ const Search = () => {
     setSearchTerm(event.target.value);
   };
 
-  // Filter ingredients based on the search term
-  const filteredIngredients = ingredients.filter(ingredient =>
-    ingredient.Name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle sorting by name
+  const sortAlphabetically = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    setSortByType(false);
+  };
+
+  // Handle sorting by type
+  const sortIngredientsByType = () => {
+    setSortByType(!sortByType);
+    setSortOrder('');
+  };
+
+  // Filter, sort, and display ingredients
+  const filteredIngredients = ingredients
+    .filter(ingredient =>
+      ingredient.Name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortByType) {
+        return a.Type.localeCompare(b.Type);
+      } else if (sortOrder === 'asc') {
+        return a.Name.localeCompare(b.Name);
+      } else if (sortOrder === 'desc') {
+        return b.Name.localeCompare(a.Name);
+      }
+      return 0;
+    });
 
   // Handle finding recipes
   const findRecipes = async () => {
@@ -49,7 +77,7 @@ const Search = () => {
       const response = await axios.post('http://localhost:5000/api/recipes', {
         ingredients: selectedIngredients.map(ingredient => ingredient.Name)
       });
-      setRecipes(response.data); // Store the fetched recipes in state
+      setRecipes(response.data);
     } catch (error) {
       console.error('Error fetching recipes:', error);
     }
@@ -73,8 +101,12 @@ const Search = () => {
       </button>
 
       <div className="options">
-        <button className="optionButton">Sort By Type</button>
-        <button className="optionButton">Sort Alphabetically</button>
+        <button className="optionButton" onClick={sortIngredientsByType}>
+          Sort By Type {sortByType ? '✔️' : ''}
+        </button>
+        <button className="optionButton" onClick={sortAlphabetically}>
+          Sort Alphabetically {sortOrder === 'asc' ? '↑' : sortOrder === 'desc' ? '↓' : ''}
+        </button>
       </div>
 
       {/* Search bar */}
@@ -93,7 +125,7 @@ const Search = () => {
             {selectedIngredients.map((ingredient, idx) => (
               <div
                 key={idx} 
-                onClick={() => handleIngredientClick(ingredient)}
+                onClick={() => handleIngredientClick(ingredient)} // Toggle selection on click
                 className="ingredientItem"
               >
                 <img src={`/images/ingredients/${ingredient.imagePath}`} alt={ingredient.Name} />
